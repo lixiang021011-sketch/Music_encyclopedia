@@ -1,0 +1,1352 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>原曲转写例句库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a working desk — query rail + results on the left, a score-like detail sheet on the right (stacks on phones). */
+:root {
+  --bg: #f3f4f7;
+  --surface: #ffffff;
+  --sunken: #eceef3;
+  --ink: #1a2130;
+  --muted: #5d6779;
+  --line: #d9dde6;
+  --accent: #2c55c9;        /* bass, links, focus */
+  --accent-soft: #e3e9fb;
+  --melody: #c27a0e;        /* melody notes, matched bars */
+  --melody-soft: #fbefd9;
+  --other: #8b95a7;
+  --drum: #b9c0cc;
+  --ok: #2f7d4f;
+  --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141a; --surface: #191d25; --sunken: #20252f; --ink: #e5e8ee; --muted: #9aa3b3; --line: #2b313d;
+    --accent: #86a5ff; --accent-soft: #232d48; --melody: #e8a640; --melody-soft: #3a2e19; --other: #7c8597; --drum: #444c5a;
+    --ok: #6cc08f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141a; --surface: #191d25; --sunken: #20252f; --ink: #e5e8ee; --muted: #9aa3b3; --line: #2b313d;
+  --accent: #86a5ff; --accent-soft: #232d48; --melody: #e8a640; --melody-soft: #3a2e19; --other: #7c8597; --drum: #444c5a;
+  --ok: #6cc08f; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.55; }
+.wrap { max-width: 1400px; margin: 0 auto; padding-inline: 20px; padding-block: 20px 40px; }
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 28px; margin: 0; letter-spacing: 0.02em; }
+.sub { color: var(--muted); margin: 2px 0 0; max-width: 62ch; }
+.stats { font-family: var(--font-data); font-size: 12px; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.stats b { color: var(--ink); font-weight: 600; }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 16px 0 14px; }
+nav.tabs button { font: inherit; font-weight: 500; border: 1px solid var(--line); background: var(--surface); color: var(--muted); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+nav.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+nav.tabs button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.desk { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; align-items: start; }
+@media (max-width: 960px) { .desk { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+[hidden] { display: none !important; }
+.query { padding: 14px 16px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.query label.l { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+input[type=text], select, input[type=number] { font: inherit; font-family: var(--font-data); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 9px; min-width: 0; }
+input[type=text] { flex: 1 1 220px; }
+input[type=number] { width: 64px; }
+.btn { font: inherit; font-weight: 500; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.chk { display: inline-flex; gap: 5px; align-items: center; color: var(--muted); font-size: 13px; cursor: pointer; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 3px 9px; border-radius: 999px; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; }
+.chip .n { font-family: var(--font-data); font-size: 11px; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.chip[aria-pressed="true"] .n { color: var(--accent); }
+.group-h { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 0.04em; }
+.hint { font-size: 12.5px; color: var(--muted); margin: 0; }
+.hint.warn { color: #b45309; font-weight: 600; }
+.hint code, .mono { font-family: var(--font-data); font-size: 12px; }
+.grid16 { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px; max-width: 420px; }
+.grid16 button { aspect-ratio: 1; border: 1px solid var(--line); background: var(--bg); border-radius: 3px; cursor: pointer; padding: 0; max-width: 100%; }
+.grid16 button:nth-child(4n+1) { border-color: var(--muted); }
+.grid16 button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+.beatnums { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 3px; max-width: 420px; font-family: var(--font-data); font-size: 10px; color: var(--muted); }
+.results-head { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 16px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); gap: 8px; flex-wrap: wrap; }
+.results { max-height: 64vh; overflow-y: auto; }
+@media (max-width: 960px) { .results { max-height: 46vh; } }
+.res { display: grid; gap: 3px; padding: 9px 16px; border-bottom: 1px solid var(--line); cursor: pointer; width: 100%; text-align: left; background: none; border-left: 3px solid transparent; border-top: 0; border-right: 0; font: inherit; color: inherit; }
+.res:hover { background: var(--sunken); }
+.res[aria-current="true"] { background: var(--accent-soft); border-left-color: var(--accent); }
+.res .t { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.res .song { font-weight: 600; }
+.res .where { font-family: var(--font-data); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.res .chords { font-family: var(--font-data); font-size: 12.5px; overflow-wrap: anywhere; }
+.res .chords .rn { color: var(--accent); }
+.res .chords .hit { background: var(--melody-soft); color: var(--melody); border-radius: 3px; padding: 0 3px; }
+.mini16 { font-family: var(--font-data); font-size: 12px; letter-spacing: 1px; color: var(--muted); }
+.mini16 i { font-style: normal; color: var(--accent); font-weight: 600; }
+.empty { padding: 24px 16px; color: var(--muted); }
+/* detail */
+.detail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 960px) { .detail { position: static; } }
+.d-head { padding: 14px 18px 10px; display: grid; gap: 4px; border-bottom: 1px solid var(--line); }
+.d-head h2 { font-family: var(--font-display); font-size: 22px; margin: 0; text-wrap: balance; }
+.d-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); }
+.d-meta .mono { color: var(--ink); }
+.path { font-family: var(--font-data); font-size: 11.5px; color: var(--muted); overflow-wrap: anywhere; }
+.chart { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.bar { flex: 1 0 120px; min-width: 120px; padding: 8px 10px; border-right: 1px solid var(--line); display: grid; gap: 4px; align-content: start; }
+.bar:last-child { border-right: 0; }
+.bar.hit { background: var(--melody-soft); }
+.bar .bn { font-family: var(--font-data); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.bar .cs { display: grid; gap: 2px; }
+.bar .cn { font-family: var(--font-data); font-weight: 600; font-size: 13px; }
+.bar .rn { font-family: var(--font-data); font-size: 12px; color: var(--accent); }
+.rn.soft { opacity: 0.55; }
+.bar .tg { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.roll-wrap { padding: 10px 12px 4px; }
+canvas { width: 100%; height: 280px; display: block; background: var(--sunken); border-radius: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 14px; align-items: center; }
+.sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 14px 14px; align-items: center; }
+.status { font-size: 12.5px; color: var(--muted); }
+.feat { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; padding: 4px 14px 14px; }
+.feat div { background: var(--sunken); border-radius: 4px; padding: 8px 10px; font-size: 12.5px; min-width: 0; }
+.feat h3 { font-size: 12px; margin: 0 0 4px; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; }
+.feat .mono { overflow-wrap: anywhere; }
+.orig { border-top: 1px solid var(--line); padding: 12px 14px 14px; display: grid; gap: 8px; }
+.orig h3 { margin: 0; font-size: 13px; font-weight: 700; }
+.orig a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.orig a:hover { text-decoration: underline; }
+.orig audio { width: 100%; }
+.orig .pos { font-family: var(--font-data); font-size: 12.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.anchors { font-family: var(--font-data); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+table.keys { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.keys td, table.keys th { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.keys th { font-weight: 500; color: var(--muted); font-size: 12px; }
+.note { font-size: 12px; color: var(--muted); padding: 10px 0 0; max-width: 90ch; }
+.scope { margin: 0 0 10px; gap: 10px; align-items: center; }
+.badge { display: inline-block; font-size: 11px; line-height: 1; padding: 3px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); margin-left: 6px; vertical-align: 1px; white-space: nowrap; }
+.badge.hi { color: var(--accent); border-color: var(--accent); }
+.badge.warn { color: var(--melody); border-color: var(--melody); }
+.ev { font-size: 12px; color: var(--muted); }
+.mined-g { font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+.chip .nm { color: var(--accent); margin-left: 6px; font-size: 11px; }
+.nextbox { display: grid; gap: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
+.nextbox .lbl { font-size: 12px; color: var(--muted); }
+.morebtn { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; padding: 4px 0; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>原曲转写例句库</h1>
+      <p class="sub">在 57 首 MIDI 和 34 首原曲录音的转写里，按和声走向、高级和声、贝斯律动、旋律和调性，查到具体是哪首歌的哪几小节。</p>
+    </div>
+    <div class="stats" id="stats">正在载入索引…</div>
+  </header>
+
+  <div class="scope row">
+    <label class="chk" for="scope">检索范围</label>
+    <select id="scope" aria-label="检索范围">
+      <option value="all">全部歌曲</option>
+      <option value="midi">只看 MIDI（57 首，音符准确）</option>
+      <option value="audio">只看原曲录音转写（Workbench，机器转写）</option>
+    </select>
+    <span class="hint" id="scope-note"></span>
+  </div>
+  <div class="scope row" id="csrc-row" hidden>
+    <label class="chk" for="csrc">和弦来源</label>
+    <select id="csrc" aria-label="和弦来源">
+      <option value="index.json">上游和弦图（大三/小三）</option>
+      <option value="index_template.json">模板读法（带七和弦、转位）</option>
+    </select>
+    <span class="hint" id="csrc-note"></span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="检索方式">
+    <button role="tab" id="tab-prog" aria-selected="true" data-tab="prog">和声走向</button>
+    <button role="tab" id="tab-adv" aria-selected="false" data-tab="adv">高级和声</button>
+    <button role="tab" id="tab-bass" aria-selected="false" data-tab="bass">贝斯律动</button>
+    <button role="tab" id="tab-mel" aria-selected="false" data-tab="mel">旋律</button>
+    <button role="tab" id="tab-key" aria-selected="false" data-tab="key">调性</button>
+  </nav>
+
+  <div class="desk">
+    <section class="panel" aria-label="检索">
+      <div class="query" id="q-prog">
+        <div class="row">
+          <select id="prog-mode" aria-label="检索方式">
+            <option value="exact">按级数（精确）</option>
+            <option value="similar">按级数（找相似的）</option>
+            <option value="func">按功能（T S D）</option>
+          </select>
+          <select id="prog-tol" aria-label="允许差几处" hidden>
+            <option value="1">最多差 1 处</option>
+            <option value="2">最多差 2 处</option>
+          </select>
+        </div>
+        <label class="l" for="prog-input" id="prog-label">级数进行（空格分隔，* 表示任意和弦）</label>
+        <div class="row">
+          <input type="text" id="prog-input" value="IV V iii vi" autocomplete="off" spellcheck="false">
+          <button class="btn primary" id="prog-go">查找</button>
+        </div>
+        <div class="row">
+          <label class="chk" id="prog-strict-l"><input type="checkbox" id="prog-strict"> 区分和弦色彩（如 IVmaj7 与 IV）</label>
+          <label class="chk"><input type="checkbox" id="prog-rel" checked> 小调按关系大调读级数</label>
+        </div>
+        <p class="hint" id="prog-hint"></p>
+        <div id="prog-next"></div>
+        <div class="group-h" id="mined-h">库里反复出现的进行</div>
+        <p class="hint">从当前检索范围里自动统计：相邻和弦合并后，3–6 个和弦的片段在几首歌里出现过。已有名字的进行会标出来。</p>
+        <label class="chk"><input type="checkbox" id="mined-chrom"> 只看含调外和弦的进行</label>
+        <div id="mined"></div>
+      </div>
+
+      <div class="query" id="q-adv" hidden>
+        <p class="hint">按用法分类列出和弦，点一个标签看所有出处（含前后两个和弦）。</p>
+        <div id="adv-groups"></div>
+      </div>
+
+      <div class="query" id="q-bass" hidden>
+        <label class="l">节奏型（点格子选择起音位置，每格一个 16 分音符）</label>
+        <div class="beatnums" aria-hidden="true"><span>1</span><span></span><span></span><span></span><span>2</span><span></span><span></span><span></span><span>3</span><span></span><span></span><span></span><span>4</span><span></span><span></span><span></span></div>
+        <div class="grid16" id="bass-grid" aria-label="16 分音符格子"></div>
+        <div class="row">
+          <select id="bass-mode" aria-label="匹配方式">
+            <option value="contains">包含所选位置</option>
+            <option value="exact">完全一致</option>
+            <option value="similar">相似（重合 ≥ 75%）</option>
+          </select>
+          <label class="chk">每小节音数 <input type="number" id="bass-min" min="0" max="32" value="0"> – <input type="number" id="bass-max" min="0" max="32" value="32"></label>
+          <button class="btn" id="bass-clear">清空格子</button>
+          <button class="btn primary" id="bass-go">查找</button>
+        </div>
+        <div class="group-h">律动特征（可多选，同时满足）</div>
+        <div class="chips" id="bass-tags"></div>
+      </div>
+
+      <div class="query" id="q-mel" hidden>
+        <label class="l" for="mel-input">旋律片段</label>
+        <div class="row">
+          <select id="mel-mode" aria-label="输入方式">
+            <option value="deg">音级（相对当前调）</option>
+            <option value="int">音程（半音数）</option>
+            <option value="con">轮廓（↗ ↘ →）</option>
+          </select>
+          <input type="text" id="mel-input" value="3 2 1" autocomplete="off" spellcheck="false">
+          <button class="btn primary" id="mel-go">查找</button>
+        </div>
+        <p class="hint">音级写法：<code>5 6 1</code>、<code>3 b3 2</code>；音程写法：<code>+2 +2 -4</code>；轮廓写法：<code>↗↗↘</code> 或 <code>UUD</code>。旋律声部由程序推测，每首歌的推测把握写在详情里。</p>
+        <div class="group-h">或按小节特征筛选（可多选）</div>
+        <div class="chips" id="mel-tags"></div>
+      </div>
+
+      <div class="query" id="q-key" hidden>
+        <p class="hint">每首歌的主调，以及程序判断出的转调、离调和大小调切换。点一行查看那几小节。</p>
+        <div class="chips" id="key-kinds"></div>
+      </div>
+
+      <div class="results-head"><span id="res-count">—</span><span id="res-note"></span></div>
+      <div class="results" id="results" role="list"></div>
+    </section>
+
+    <section class="panel detail" aria-label="详情" id="detail">
+      <div class="d-head">
+        <h2 id="d-title">选一条结果查看</h2>
+        <div class="d-meta" id="d-meta"></div>
+        <div class="path" id="d-path"></div>
+      </div>
+      <div class="chart" id="d-chart"></div>
+      <div class="roll-wrap"><canvas id="roll" aria-label="钢琴卷帘"></canvas></div>
+      <div class="legend" id="d-legend"></div>
+      <div class="actions">
+        <button class="btn" id="ctx-less" title="缩小范围">− 前后各 1 小节</button>
+        <button class="btn" id="ctx-more" title="扩大范围">+ 前后各 1 小节</button>
+        <button class="btn primary" id="play">播放</button>
+        <button class="btn" id="export">导出 MIDI（zip）</button>
+        <span class="status" id="status"></span>
+      </div>
+      <div class="feat" id="d-feat"></div>
+      <div class="orig" id="orig">
+        <h3>原曲</h3>
+        <div class="row" id="orig-links"></div>
+        <div class="row">
+          <label class="btn primary" for="orig-dir" id="orig-dir-btn" hidden>载入原曲文件夹</label>
+          <input type="file" id="orig-dir" webkitdirectory directory multiple hidden>
+          <label class="btn" for="orig-file">载入原曲音频</label>
+          <input type="file" id="orig-file" accept="audio/*,.mp3,.m4a,.flac,.wav,.ogg,video/mp4" hidden>
+          <span class="status" id="orig-name">用你电脑上的原曲文件，只在这个页面里播放，不会上传。</span>
+        </div>
+        <audio id="orig-audio" controls preload="metadata" hidden></audio>
+        <div class="row" id="orig-ctrl" hidden>
+          <button class="btn primary" id="orig-jump">从第 1 小节播放原曲</button>
+          <label class="chk">设为第 <input type="number" id="orig-bar" min="1" value="1"> 小节的起点</label>
+          <button class="btn" id="orig-set">设对齐点</button>
+          <button class="btn" id="orig-reset">清除对齐点</button>
+        </div>
+        <div class="pos" id="orig-pos" hidden></div>
+        <div class="anchors" id="orig-anchors"></div>
+        <p class="hint" id="orig-help">对齐方法：播放原曲，在某一小节的第一拍按暂停，填上小节号，点“设对齐点”。设两个以上的点，MIDI 和原曲速度不一致也能对上。对齐点只保存在这个浏览器里。</p>
+      </div>
+    </section>
+  </div>
+  <p class="note">MIDI 部分来自 JPop流行摇滚57首_canonical；原曲转写部分来自 Workbench 第一批（workbench_data_baseline，34 首），是分轨后机器转写的结果，没有人工核对。和弦、调性、旋律和贝斯声部都是程序从 MIDI 推断的：和弦识别用模板匹配加平滑，调性用局部调性估计，结论请用耳朵对照原曲核实。播放用的是简易合成音色，只用来辨认音高和节奏。</p>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+  }
+  for (const k of kids) if (k != null) n.append(k);
+  return n;
+};
+const ROMAN = ["I","bII","II","bIII","III","IV","#IV","V","bVI","VI","bVII","VII"];
+const DEG = ["1","b2","2","b3","3","4","#4","5","b6","6","b7","7"];
+const MAJ = new Set(["","7","maj7","6","add9","maj9","9","aug","7b9"]);
+const MIN = new Set(["m","m7","m6","madd9","m9","mM7"]);
+const DIM = new Set(["dim","m7b5","dim7"]);
+const fam = t => MAJ.has(t) ? "M" : MIN.has(t) ? "m" : DIM.has(t) ? "d" : "s";
+const NOTE_PC = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function parseKey(name) {           // "F# 小调" -> {tonic, mode}
+  const m = /^([A-G])([#b]?)\s*(大调|小调)/.exec(name || "");
+  if (!m) return null;
+  let pc = NOTE_PC[m[1]] + (m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0);
+  return { tonic: (pc + 12) % 12, mode: m[3] === "大调" ? "major" : "minor" };
+}
+
+let IDX = null, SONGS = {}, current = null, ctx = 1;
+const noteCache = {};
+const state = { tab: "prog", results: [], sel: -1 };
+let scope = "all";
+try { scope = localStorage.getItem("lib-scope") || "all"; } catch (e) {}
+const isAudio = s => s.kind === "audio";
+const scoped = () => IDX.songs.filter(s => scope === "all" || (scope === "audio") === isAudio(s));
+const SCOPE_NOTE = {
+  all: "",
+  midi: "",
+  audio: "录音转写：和弦只有大三/小三、半小节一个，只在根音一致率 ≥55% 的歌里可查；贝斯按八分音符取位，只在起音贴拍比打乱后高出 10 个百分点以上、且不规则小节不超过四分之一的歌里可查（目前 10 首），贝斯转写的起音时间整体偏弱，结果请先听；没有旋律。"
+};
+function songBadges(s) {
+  if (!isAudio(s)) return [];
+  const out = [el("span", { class: "badge", text: "原曲转写" })];
+  if (state.tab === "prog" || state.tab === "adv") {
+    if (s.tier) out.push(el("span", { class: "badge" + (s.tier === "高" ? " hi" : " warn"), text: `${s.tierBasis === "调覆盖" ? "调覆盖" : "和弦可信度"}${s.tier}` }));
+  }
+  return out;
+}
+
+// ---------- loading ----------
+// the local server writes _status.json: is this index older than the Workbench export, and how many songs wait for review
+function showStatus(d) {
+  const box = $("#build-status") || (() => { const n = el("p", { class: "hint", id: "build-status" }); $(".note").before(n); return n; })();
+  const parts = [];
+  if (d.buildId) parts.push(`索引版本 ${d.buildId}${d.builtAt ? `，${d.builtAt.replace("T", " ").slice(0, 16)} 构建` : ""}`);
+  if (d.held && d.held.length) parts.push(`⚠ ${d.held.join("、")} 这次指标大幅下降，暂时沿用上一版（见 build_report.json → heldBack）`);
+  box.textContent = parts.join("");
+  if (!/^https?:$/.test(location.protocol)) return;
+  fetch("_status.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(st => {
+    if (!st) return;
+    if (st.buildId && d.buildId && st.buildId !== d.buildId) parts.push("页面里的索引不是最新构建，请刷新页面");
+    else if (st.stale) parts.push(`⚠ Workbench 导出里已发布的 ${st.staleSongs.length} 首歌有变化，索引还没重建（${st.staleSongs.slice(0, 5).join("、")}${st.staleSongs.length > 5 ? " 等" : ""}）`);
+    else parts.push("和当前 Workbench 导出一致");
+    if (st.candidates) parts.push(`导出里另有 ${st.candidates} 首未发布，见 build_report.json`);
+    box.textContent = parts.join("；");
+    box.classList.toggle("warn", !!st.stale);
+  }).catch(() => {});
+}
+function loadIndex(file) {
+fetch(file).then(r => r.json()).then(d => {
+  IDX = d; SONGS = {}; colCache.clear(); ADV.clear(); current = null;
+  let bars = 0, chords = 0;
+  for (const s of d.songs) {
+    SONGS[s.id] = s; bars += s.bars.length; chords += s.seq.length;
+    s.barMap = new Map(s.bars.map(b => [b.b, b]));
+    // served next to workbench_data_baseline (例句库服务 / Workbench client): the recordings are reachable by URL, no folder pick needed
+    if (s.srcRel && /^https?:$/.test(location.protocol) && !ORIG[s.id]) ORIG[s.id] = { url: s.srcRel, name: `${s.title}（Workbench 导出里的原曲）`, anchors: [], auto: true };
+  }
+  $("#stats").innerHTML = "";
+  const na = d.songs.filter(isAudio).length;
+  if (d.source) {            // single-source edition: the scope is fixed by the index
+    scope = d.source; $(".scope").hidden = true;
+    if (d.source === "audio") {
+      document.title = "原曲转写例句库"; $("h1").textContent = "原曲转写例句库";
+      $(".sub").textContent = `在 ${d.songs.length} 首原曲录音的机器转写里（Workbench 导出），按和声走向、调外和弦候选、贝斯律动和调性，查到具体是哪首歌的哪几小节，并直接播放原曲片段。`;
+      $("#tab-mel").hidden = true;
+      $("#scope-note").textContent = "";
+      if (!$("#audio-hint")) $("#q-prog").prepend(el("p", { class: "hint", id: "audio-hint", text: SCOPE_NOTE.audio.replace("（目前 10 首）", `（这一版有 ${d.songs.filter(x => x.bassSearchable).length} 首）`) }));
+      $("#csrc-row").hidden = false; $("#csrc").value = file;
+      $("#csrc-note").textContent = d.chordSourceNote || "";
+      showStatus(d);
+      $(".note").textContent = `数据来自 Workbench 导出（workbench_data_baseline，${d.songs.length} 首${d.builtAt ? `，${d.builtAt} 构建` : ""}），是分轨后机器转写的结果，没有人工核对：和弦有两个来源可切换（上游和弦图：半小节一个大三/小三；模板读法：带七和弦与转位，真实录音上的准确率尚未验证），贝斯是 basic_pitch 转写，调性是按和弦估计的全曲调。听的是你电脑上的原曲本身，结论请以耳朵为准。`;
+      advKey = "候选:疑似借用和弦（同主音小调）";
+    } else {
+      $(".sub").textContent = "在 57 首 J-Pop 与流行摇滚 MIDI 里，按和声走向、高级和声、贝斯律动、旋律和调性，查到具体是哪首歌的哪几小节。";
+      $(".note").textContent = "数据来自你的 canonical 数据集（JPop流行摇滚57首_canonical）。和弦、调性、旋律和贝斯声部都是程序从 MIDI 推断的：和弦识别用模板匹配加平滑，调性用局部调性估计，结论请用耳朵对照原曲核实。播放用的是简易合成音色，只用来辨认音高和节奏。";
+    }
+  } else { $("#scope").value = scope; $("#scope-note").textContent = SCOPE_NOTE[scope]; }
+  $("#stats").append(...[d.songs.length - na ? el("span", {}, el("b", { text: d.songs.length - na }), " 首 MIDI") : null, na ? el("span", {}, el("b", { text: na }), " 首原曲转写") : null].filter(Boolean),
+    el("span", {}, el("b", { text: bars.toLocaleString() }), " 小节"), el("span", {}, el("b", { text: chords.toLocaleString() }), " 个和弦段"));
+  for (const so of d.songs) { so.seqTags = []; for (const b of so.bars) for (const c of b.ch) if (!so.seqTags[c.i]) so.seqTags[c.i] = c.tags; }
+  buildMined(); buildAdv(); buildBass(); buildMelTags(); buildKeyKinds();
+  setTab(state.tab);
+}).catch(() => { $("#stats").textContent = "索引载入失败，请刷新页面。"; });
+}
+let startFile = "index.json";
+try { const v = localStorage.getItem("lib-csrc"); if (v === "index_template.json") startFile = v; } catch (e) {}
+loadIndex(startFile);
+$("#csrc").addEventListener("change", e => { try { localStorage.setItem("lib-csrc", e.target.value); } catch (er) {} loadIndex(e.target.value); });
+
+$("#scope").addEventListener("change", e => {
+  scope = e.target.value; $("#scope-note").textContent = SCOPE_NOTE[scope];
+  buildMined();
+  try { localStorage.setItem("lib-scope", scope); } catch (er) {}
+  setTab(state.tab);
+});
+// ---------- tabs ----------
+for (const b of document.querySelectorAll("nav.tabs button")) b.addEventListener("click", () => setTab(b.dataset.tab));
+function setTab(t) {
+  state.tab = t;
+  for (const b of document.querySelectorAll("nav.tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === t));
+  for (const k of ["prog","adv","bass","mel","key"]) $("#q-" + k).hidden = k !== t;
+  try { localStorage.setItem("lib-tab", t); } catch (e) {}
+  if (t === "prog") runProg(); else if (t === "adv") runAdv(); else if (t === "bass") runBass(); else if (t === "mel") runMel(); else runKey();
+}
+
+// ---------- results rendering ----------
+function showResults(items, note = "") {
+  state.results = items; state.sel = -1;
+  const box = $("#results"); box.innerHTML = "";
+  $("#res-count").textContent = items.length ? `找到 ${items.length} 处` : "没有找到";
+  $("#res-note").textContent = note;
+  if (!items.length) { box.append(el("div", { class: "empty", text: "换一种写法，或去掉一些条件再试。" })); return; }
+  const frag = document.createDocumentFragment();
+  items.slice(0, 400).forEach((it, i) => {
+    const s = SONGS[it.song];
+    const b = el("button", { class: "res", role: "listitem", onclick: () => select(i, true) },
+      el("div", { class: "t" }, el("span", { class: "song" }, s.title + (s.artist && !s.artist.startsWith("(") ? " · " + s.artist : ""), ...songBadges(s)),
+        el("span", { class: "where", text: it.a === it.b ? `第 ${it.a} 小节` : `第 ${it.a}–${it.b} 小节` })),
+      it.body);
+    frag.append(b);
+  });
+  box.append(frag);
+  if (items.length > 400) box.append(el("div", { class: "empty", text: `只列出前 400 处，共 ${items.length} 处。加些条件可以缩小范围。` }));
+  select(0);
+}
+function select(i, play = false) {
+  const items = state.results; if (!items[i]) return;
+  state.sel = i;
+  document.querySelectorAll(".res").forEach((n, k) => n.setAttribute("aria-current", String(k === i)));
+  const it = items[i]; ctx = it.ctx ?? 1;
+  const p = openDetail(it.song, it.a, it.b);
+  if (play && isAudio(SONGS[it.song]) && ORIG[it.song]) p.then(() => playSlice());
+}
+function relView() { return state.tab === "prog" && $("#prog-rel").checked; }
+function numeral(c) { return relView() ? relRoman(c, true) : c.r; }
+function chordLine(seq, i0, i1, hitFrom, hitTo) {
+  const span = el("div", { class: "chords" });
+  for (let i = Math.max(0, i0); i <= Math.min(seq.length - 1, i1); i++) {
+    const c = seq[i];
+    const part = el("span", {}, c.c, " ", el("span", { class: "rn" + (c.rk === "root" ? " soft" : ""), text: numeral(c), title: c.rk === "root" ? "挂留/强力/增和弦没有大小之分：只标根音级数" : "" }));
+    if (i >= hitFrom && i <= hitTo) part.className = "hit";
+    span.append(part, i < i1 ? "  →  " : "");
+  }
+  return span;
+}
+
+// ---------- 1. progressions ----------
+function parseNumeral(tok) {
+  if (tok === "*" || tok === "?") return { any: true };
+  const m = /^([b#♭♯]?)(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(.*)$/.exec(tok);
+  if (!m) return null;
+  const acc = m[1].replace("♭", "b").replace("♯", "#");
+  const deg = ROMAN.indexOf(acc + m[2].toUpperCase());
+  if (deg < 0) return null;
+  let f = m[2] === m[2].toUpperCase() ? "M" : "m";
+  if (/[°ø]|dim/.test(m[3])) f = "d";
+  if (/sus|5$/.test(m[3]) && f === "M") f = "s";
+  return { deg, fam: f, raw: tok.replace(/^[b#♭♯]/, acc) };
+}
+function relDeg(c, rel) { return rel && c.mode === "minor" ? (c.root + 9) % 12 : c.root; }
+function relRoman(c, rel) {
+  if (!(rel && c.mode === "minor")) return c.r;
+  const d = (c.root + 9) % 12; let r = ROMAN[d];
+  if (MIN.has(c.typ) || DIM.has(c.typ)) r = r.toLowerCase();
+  return r + c.r.replace(/^[b#]?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)/, "");
+}
+// sus / power chords have no third: give them the quality the scale degree has in its key (so A5 in C reads as vi, not VI)
+const DIA_Q = { major: { 0: "M", 2: "m", 4: "m", 5: "M", 7: "M", 9: "m", 11: "d" }, minor: { 0: "m", 2: "d", 3: "M", 5: "m", 7: "m", 8: "M", 10: "M" } };
+const famLoose = (c, deg, mode = "major") => { const f = fam(c.typ); return f === "s" ? (DIA_Q[mode][deg] || "M") : f; };
+const tokStr = (deg, f) => deg + f;                                                 // "5M" = IV
+function tokRoman(t) { const d = parseInt(t, 10), f = t.slice(-1); let r = ROMAN[d]; if (f !== "M") r = r.toLowerCase(); return f === "d" ? r + "°" : r; }
+// function of a chord in its own key (not the relative-major view)
+const FUNC = {
+  major: { "0M": "T", "4m": "T", "9m": "T", "5M": "S", "2m": "S", "7M": "D", "11d": "D", "5m": "S", "8M": "S", "10M": "S", "2d": "S", "3M": "T", "0m": "T" },
+  minor: { "0m": "T", "3M": "T", "8M": "S", "5m": "S", "2d": "S", "7M": "D", "7m": "D", "10M": "D", "11d": "D", "5M": "S", "0M": "T" }
+};
+function funcOf(s, i) {
+  const c = s.seq[i];
+  if ((s.seqTags[i] || []).some(t => /^功能:副属和弦/.test(t))) return "V/";
+  const md = c.mode === "minor" ? "minor" : "major";
+  return FUNC[md][tokStr(c.root, famLoose(c, c.root, md))] || "X";
+}
+// collapsed token streams, cached per song and view
+const colCache = new Map();
+function collapsed(s, kind, rel) {
+  const k = s.id + "|" + kind + "|" + rel;
+  if (colCache.has(k)) return colCache.get(k);
+  const col = [];
+  s.seq.forEach((c, i) => {
+    const d = relDeg(c, rel), md = rel || c.mode !== "minor" ? "major" : "minor";
+    const key = kind === "strict" ? relRoman({ ...c, r: c.rx || c.r }, rel).split(" on ")[0] : kind === "func" ? funcOf(s, i) : tokStr(d, famLoose(c, d, md));
+    if (col.length && col[col.length - 1].key === key) col[col.length - 1].to = i;
+    else col.push({ key, from: i, to: i, c });
+  });
+  colCache.set(k, col);
+  return col;
+}
+// substitution cost for "similar": same chord 0, same root other quality or same function 0.5, otherwise 1
+const FN_MAJ = { "0M": "T", "4m": "T", "9m": "T", "5M": "S", "2m": "S", "5m": "S", "8M": "S", "10M": "S", "2d": "S", "7M": "D", "11d": "D" };
+function subCost(p, key) {
+  if (p.any) return 0;
+  const want = tokStr(p.deg, p.fam === "s" ? "M" : p.fam);
+  if (want === key) return 0;
+  if (parseInt(key, 10) === p.deg) return 0.5;
+  const a = FN_MAJ[want], b = FN_MAJ[key];
+  return a && a === b ? 0.5 : 1;
+}
+function bestAlign(pat, col, i, tol) {      // pattern vs col[i .. i+L) for L in m-1..m+2, edit distance
+  const m = pat.length; let best = null;
+  const maxL = Math.min(m + 2, col.length - i);
+  // dp over text positions: D[j][k] = cost aligning pat[0..j) with col[i..i+k)
+  let prev = Array.from({ length: maxL + 1 }, (_, k) => k);
+  for (let j = 1; j <= m; j++) {
+    const cur = [j];
+    for (let k = 1; k <= maxL; k++) cur[k] = Math.min(prev[k] + 1, cur[k - 1] + 1, prev[k - 1] + subCost(pat[j - 1], col[i + k - 1].key));
+    prev = cur;
+  }
+  for (let L = Math.max(1, m - 1); L <= maxL; L++) if (prev[L] <= tol && (!best || prev[L] < best.d || (prev[L] === best.d && Math.abs(L - m) < Math.abs(best.L - m)))) best = { d: prev[L], L };
+  // the match must start on a matching chord, otherwise it is just a shifted copy of a neighbour
+  if (best && !pat[0].any && subCost(pat[0], col[i].key) >= 1) return null;
+  return best;
+}
+const FUNC_TOK = new Set(["T", "S", "D", "V/", "X"]);
+const PROG_HELP = {
+  exact: "写法：<code>I bVII IV</code>、<code>IVmaj7 III7 vi</code>、<code>ii V I</code>。大写为大三和弦一类，小写为小三和弦一类，<code>°</code> 为减和弦。",
+  similar: "按同样写法输入。和弦换成同根音的其他色彩、或换成同功能的和弦（如 I↔vi、IV↔ii）算差半处，多一个或少一个和弦算差一处。完全一致的排在最前面。",
+  func: "<code>T</code> 主功能（I iii vi，小调 i III）、<code>S</code> 下属功能（IV ii，以及借用的 iv bVI bVII）、<code>D</code> 属功能（V vii°）、<code>V/</code> 副属和弦、<code>X</code> 其他调外和弦、<code>*</code> 任意。例：<code>T S D T</code>、<code>S V/ S</code>。"
+};
+function syncProgUI() {
+  const mode = $("#prog-mode").value;
+  $("#prog-tol").hidden = mode !== "similar";
+  $("#prog-strict-l").hidden = mode !== "exact";
+  $("#prog-label").textContent = mode === "func" ? "功能进行（空格分隔）" : "级数进行（空格分隔，* 表示任意和弦）";
+  $("#prog-hint").innerHTML = PROG_HELP[mode];
+}
+let lastHits = null;
+function runProg(q) {
+  if (!IDX) return;
+  syncProgUI();
+  const mode = $("#prog-mode").value;
+  const text = (q ?? $("#prog-input").value).trim();
+  const strict = mode === "exact" && $("#prog-strict").checked, rel = $("#prog-rel").checked;
+  const toks = text.split(/\s+|–|-(?=[ivIVb#])/).filter(Boolean);
+  let pat;
+  if (mode === "func") {
+    pat = toks.map(t => t === "*" ? { any: true } : FUNC_TOK.has(t.toUpperCase()) ? { f: t.toUpperCase() } : null);
+  } else pat = toks.map(parseNumeral);
+  if (!pat.length || pat.some(p => !p)) { lastHits = null; renderNext(); showResults([], mode === "func" ? "只认 T S D V/ X 和 *" : "有看不懂的级数，请检查写法"); return; }
+  const kind = mode === "func" ? "func" : strict ? "strict" : "loose";
+  const tol = +$("#prog-tol").value;
+  const out = [], hits = [];
+  for (const s of scoped()) {
+    const col = collapsed(s, kind, rel);
+    if (mode === "similar") {
+      const cands = [];
+      for (let i = 0; i < col.length; i++) { const r = bestAlign(pat, col, i, tol); if (r) cands.push({ i, L: r.L, d: r.d }); }
+      cands.sort((a, b) => a.d - b.d || a.i - b.i);
+      const used = new Set();
+      for (const c of cands) {
+        let free = true; for (let k = c.i; k < c.i + c.L; k++) if (used.has(k)) { free = false; break; }
+        if (!free) continue;
+        for (let k = c.i; k < c.i + c.L; k++) used.add(k);
+        const a = col[c.i].from, z = col[c.i + c.L - 1].to;
+        const body = chordLine(s.seq, a - 1, z + 1, a, z);
+        body.append(el("div", { class: "where", text: c.d === 0 ? "完全一致" : `差 ${c.d} 处` }));
+        out.push({ song: s.id, a: s.seq[a].bar, b: s.seq[z].bar, body, d: c.d });
+        hits.push({ col, i: c.i, L: c.L });
+      }
+      continue;
+    }
+    for (let i = 0; i + pat.length <= col.length; i++) {
+      let ok = true;
+      for (let j = 0; j < pat.length && ok; j++) {
+        const p = pat[j], cc = col[i + j];
+        if (p.any) continue;
+        if (mode === "func") { ok = cc.key === p.f; continue; }
+        const c = cc.c;
+        if (relDeg(c, rel) !== p.deg) { ok = false; break; }
+        if (strict) ok = relRoman({ ...c, r: c.rx || c.r }, rel).split(" on ")[0] === p.raw;
+        else ok = p.fam === "s" ? parseInt(cc.key, 10) === p.deg : cc.key === tokStr(p.deg, p.fam);   // same reading as the mined dictionary
+      }
+      if (ok) {
+        const a = col[i].from, z = col[i + pat.length - 1].to;
+        const body = chordLine(s.seq, a - 1, z + 1, a, z);
+        if (mode === "func") body.append(el("div", { class: "where", text: col.slice(i, i + pat.length).map(x => x.key).join(" ") }));
+        out.push({ song: s.id, a: s.seq[a].bar, b: s.seq[z].bar, body });
+        hits.push({ col, i, L: pat.length });
+        i += pat.length - 1;
+      }
+    }
+  }
+  if (mode === "similar") {      // exact matches first, then by distance; keep song order inside a distance
+    const order = out.map((o, k) => [o, hits[k]]).sort((x, y) => x[0].d - y[0].d);
+    out.length = 0; hits.length = 0; for (const [o, h] of order) { out.push(o); hits.push(h); }
+  }
+  lastHits = { hits, mode, kind, rel, toks };
+  renderNext();
+  const songs = new Set(out.map(o => o.song)).size;
+  showResults(out, [out.length ? `${songs} 首歌` : "", rel && mode !== "func" ? "小调歌曲按关系大调读级数" : ""].filter(Boolean).join(" · "));
+}
+// what tends to come after / before the hits
+function renderNext() {
+  const box = $("#prog-next"); box.innerHTML = "";
+  if (!lastHits || !lastHits.hits.length) return;
+  const { hits, mode, kind } = lastHits;
+  const nxt = new Map(), prv = new Map();
+  for (const h of hits) {
+    const a = h.col[h.i + h.L], b = h.col[h.i - 1];
+    if (a) nxt.set(a.key, (nxt.get(a.key) || 0) + 1);
+    if (b) prv.set(b.key, (prv.get(b.key) || 0) + 1);
+  }
+  const label = k => kind === "loose" ? tokRoman(k) : k;
+  const row = (title, m, place) => {
+    const tot = [...m.values()].reduce((x, y) => x + y, 0); if (!tot) return null;
+    const chips = el("div", { class: "chips" });
+    [...m.entries()].sort((x, y) => y[1] - x[1]).slice(0, 8).forEach(([k, n]) => chips.append(el("button", { class: "chip", onclick: () => {
+      const t = label(k), cur = $("#prog-input").value.trim();
+      $("#prog-input").value = place === "after" ? `${cur} ${t}` : `${t} ${cur}`;
+      runProg();
+    } }, label(k), el("span", { class: "n", text: `${Math.round(n / tot * 100)}% · ${n}` }))));
+    return el("div", {}, el("div", { class: "lbl", text: title }), chips);
+  };
+  const r1 = row(mode === "func" ? "之后接的功能（点一下接到末尾）" : "之后最常接的和弦（点一下接到末尾）", nxt, "after");
+  const r2 = row(mode === "func" ? "之前的功能（点一下加到开头）" : "之前最常是（点一下加到开头）", prv, "before");
+  if (r1 || r2) box.append(el("div", { class: "nextbox" }, r1, r2));
+}
+$("#prog-go").addEventListener("click", () => runProg());
+$("#prog-input").addEventListener("keydown", e => { if (e.key === "Enter") runProg(); });
+$("#prog-strict").addEventListener("change", () => runProg());
+$("#prog-rel").addEventListener("change", () => { buildMined(); runProg(); });
+$("#prog-tol").addEventListener("change", () => runProg());
+$("#prog-mode").addEventListener("change", () => {
+  const mode = $("#prog-mode").value, v = $("#prog-input").value.trim();
+  const isFunc = v.split(/\s+/).every(t => FUNC_TOK.has(t.toUpperCase()) || t === "*");
+  if (mode === "func" && !isFunc) $("#prog-input").value = "T S D T";
+  if (mode !== "func" && isFunc) $("#prog-input").value = "IV V iii vi";
+  runProg();
+});
+// ---------- mined progression dictionary ----------
+const NAMED = [
+  ["王道进行", "5M 7M 4m 9m"], ["丸サ进行", "5M 4M 9m"], ["小室进行", "9m 5M 7M 0M"], ["卡农进行", "0M 7M 9m 4m 5M"],
+  ["Axis", "0M 7M 9m 5M"], ["Axis 变体", "9m 5M 0M 7M"], ["50 年代进行", "0M 9m 5M 7M"], ["ii–V–I", "2m 7M 0M"],
+  ["五度循环", "4m 9m 2m 7M"], ["安达卢西亚终止", "9m 7M 5M 4M"], ["借用终止 bVI–bVII–I", "8M 10M 0M"],
+  ["摇滚终止 bVII–IV–I", "10M 5M 0M"], ["小四级终止", "5M 5m 0M"]
+];
+const NAMED_MAP = new Map(NAMED.map(([n, k]) => [k, n]));
+function namedFor(key) {
+  if (NAMED_MAP.has(key)) return NAMED_MAP.get(key);
+  for (const [k, n] of NAMED_MAP) if (key.length > k.length && (" " + key + " ").includes(" " + k + " ")) return "含" + n;
+  return "";
+}
+let minedShown = { 3: 16, 4: 16, 5: 12 };
+const DIATONIC_REL = new Set(["0M", "2m", "4m", "5M", "7M", "9m", "11d"]);   // in the relative-major view
+$("#mined-chrom").addEventListener("change", () => buildMined());
+function buildMined() {
+  if (!IDX) return;
+  const rel = $("#prog-rel").checked;
+  const stat = new Map();        // key -> {occ, songs:Set}
+  for (const s of scoped()) {
+    const col = collapsed(s, "loose", rel);
+    const last = new Map();      // key -> last end (non-overlapping per song)
+    for (let L = 3; L <= 6; L++) for (let i = 0; i + L <= col.length; i++) {
+      const key = col.slice(i, i + L).map(x => x.key).join(" ");
+      if ((last.get(key) ?? -1) > i) continue;
+      last.set(key, i + L);
+      if (!stat.has(key)) stat.set(key, { occ: 0, songs: new Set(), L });
+      const st = stat.get(key); st.occ++; st.songs.add(s.id);
+    }
+  }
+  const keep = [];
+  for (const [key, st] of stat) {
+    const need = st.L <= 4 ? 3 : 2;
+    if (st.songs.size < need) continue;
+    const ks = key.split(" "), distinct = new Set(ks).size;
+    if (st.L === 3 ? distinct < 3 : distinct < 3) continue;          // drop back-and-forth like I V I or IV V IV V
+    if ($("#mined-chrom").checked && ks.every(k => DIATONIC_REL.has(k))) continue;
+    keep.push({ key, ...st, n: st.songs.size });
+  }
+  // keep only maximal patterns: drop P when a one-chord-longer extension covers >= 80 % of its songs
+  const byKey = new Map(keep.map(k => [k.key, k]));
+  const maximal = keep.filter(p => {
+    if (NAMED_MAP.has(p.key)) return true;
+    for (const q of keep) if (q.L === p.L + 1 && (q.key.startsWith(p.key + " ") || q.key.endsWith(" " + p.key)) && q.n >= 0.8 * p.n) return false;
+    return true;
+  });
+  void byKey;
+  const box = $("#mined"); box.innerHTML = "";
+  const groups = [[3, "3 个和弦"], [4, "4 个和弦"], [5, "5–6 个和弦"]];
+  for (const [g, title] of groups) {
+    const list = maximal.filter(p => g === 5 ? p.L >= 5 : p.L === g).sort((a, b) => b.n - a.n || b.occ - a.occ);
+    if (!list.length) continue;
+    box.append(el("div", { class: "mined-g", text: `${title}（${list.length} 种）` }));
+    const chips = el("div", { class: "chips" });
+    list.slice(0, minedShown[g]).forEach(p => {
+      const roman = p.key.split(" ").map(tokRoman).join(" "), nm = namedFor(p.key);
+      chips.append(el("button", { class: "chip", title: `${p.n} 首歌、共 ${p.occ} 处`, onclick: () => {
+        $("#prog-mode").value = "exact"; $("#prog-strict").checked = false; $("#prog-input").value = roman; runProg();
+        $("#results").scrollIntoView({ block: "nearest" });
+      } }, roman, nm ? el("span", { class: "nm", text: nm }) : null, el("span", { class: "n", text: `${p.n} 首` })));
+    });
+    box.append(chips);
+    if (list.length > minedShown[g]) box.append(el("button", { class: "morebtn", text: `再显示 ${Math.min(24, list.length - minedShown[g])} 种`, onclick: () => { minedShown[g] += 24; buildMined(); } }));
+  }
+}
+
+// ---------- 2. advanced harmony ----------
+const ADV = new Map();   // label -> [{song, i}]
+function normTag(cat, t) {
+  if (cat === "功能") {
+    if (t.startsWith("副属和弦（未直接解决）")) return "副属和弦（未直接解决）";
+    if (t.startsWith("副属和弦")) return "副属和弦";
+    if (t.startsWith("副导和弦")) return "副导和弦";
+    if (t.startsWith("三全音替代")) return "三全音替代";
+    return t;
+  }
+  if (cat === "调性" && t.startsWith("短暂离调")) return "短暂离调";
+  return t;
+}
+function buildAdv() {
+  $("#adv-groups").innerHTML = "";
+  const groups = { "功能": new Map(), "低音": new Map(), "色彩": new Map(), "调性": new Map(), "候选": new Map(), "候选低音": new Map(), "候选色彩": new Map() };
+  for (const s of IDX.songs) {
+    const seen = new Set();
+    for (const b of s.bars) for (const c of b.ch) {
+      if (seen.has(c.i)) continue; seen.add(c.i);
+      for (const tg of c.tags) {
+        const k = tg.indexOf(":"); const cat = tg.slice(0, k), t = tg.slice(k + 1);
+        if (!groups[cat]) continue;
+        const label = normTag(cat, t);
+        if (!groups[cat].has(label)) groups[cat].set(label, []);
+        groups[cat].get(label).push({ song: s.id, i: c.i, full: t, ev: c.ev });
+      }
+    }
+  }
+  const box = $("#adv-groups");
+  const titles = { "功能": "和声功能", "低音": "低音写法", "色彩": "和弦色彩", "调性": "调性", "候选": "原曲转写里的调外和弦（候选，未核实，请先听）", "候选低音": "原曲转写里的转位与分割和弦（候选，仅模板读法）", "候选色彩": "原曲转写里的和弦色彩（候选，仅模板读法）" };
+  for (const [cat, m] of Object.entries(groups)) {
+    if (!m.size) continue;
+    box.append(el("div", { class: "group-h", text: titles[cat] }));
+    const chips = el("div", { class: "chips" });
+    [...m.entries()].sort((a, b) => b[1].length - a[1].length).forEach(([label, list]) => {
+      ADV.set(cat + ":" + label, list);
+      chips.append(el("button", { class: "chip", "aria-pressed": "false", "data-k": cat + ":" + label, onclick: e => {
+        box.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", "false"));
+        e.currentTarget.setAttribute("aria-pressed", "true"); runAdv(cat + ":" + label);
+      } }, label, el("span", { class: "n", text: list.length })));
+    });
+    box.append(chips);
+  }
+  const first = [...box.querySelectorAll(".chip")].find(c => c.dataset.k === advKey);
+  if (first) first.setAttribute("aria-pressed", "true");
+}
+let advKey = "功能:副属和弦";
+function runAdv(k) {
+  if (!IDX) return;
+  if (k) advKey = k;
+  const list = (ADV.get(advKey) || []).filter(o => scope === "all" || (scope === "audio") === isAudio(SONGS[o.song]));
+  const out = list.map(o => {
+    const s = SONGS[o.song], c = s.seq[o.i];
+    const body = chordLine(s.seq, o.i - 2, o.i + 2, o.i, o.i);
+    if (o.full && o.full !== advKey.split(":")[1]) body.append(el("div", { class: "where", text: o.full }));
+    if (o.ev) body.append(el("div", { class: "ev", text: o.ev }));
+    return { song: o.song, a: c.bar, b: c.bar, body, ctx: 2 };
+  });
+  showResults(out, advKey.startsWith("候选:") ? "机器转写的三和弦推出来的候选：真实和弦可能带七音或转位，也可能是转写错误" : advKey.split(":")[1]);
+}
+
+// ---------- 3. bass ----------
+const BASS_TAGS = ["8 分推进","16 分连续","根音为主","16 分切分","八度跳跃","级进走动（walking）","半音经过音","半音接近下一小节","提前进入下一小节（抢拍）","长音铺底","大量和弦外音"];
+const bassSel = new Set(); const bassTagSel = new Set();
+function buildBass() {
+  const g = $("#bass-grid");
+  $("#bass-tags").innerHTML = "";
+  // preset: How Do You Do!-style 8beat push (1, 3, 3&)
+  if (!g.children.length) [0, 8, 10].forEach(i => bassSel.add(i));
+  for (let i = 0; i < 16 && g.children.length < 16; i++) {
+    g.append(el("button", { "aria-pressed": String(bassSel.has(i)), "aria-label": `第 ${Math.floor(i / 4) + 1} 拍第 ${i % 4 + 1} 个 16 分音符`, onclick: e => {
+      if (bassSel.has(i)) bassSel.delete(i); else bassSel.add(i);
+      e.currentTarget.setAttribute("aria-pressed", String(bassSel.has(i))); runBass();
+    } }));
+  }
+  const cnt = new Map();
+  for (const s of IDX.songs) for (const b of s.bars) for (const t of (b.bs.tags || [])) cnt.set(t, (cnt.get(t) || 0) + 1);
+  const box = $("#bass-tags");
+  for (const t of BASS_TAGS) box.append(el("button", { class: "chip", "aria-pressed": "false", onclick: e => {
+    if (bassTagSel.has(t)) bassTagSel.delete(t); else bassTagSel.add(t);
+    e.currentTarget.setAttribute("aria-pressed", String(bassTagSel.has(t))); runBass();
+  } }, t, el("span", { class: "n", text: cnt.get(t) || 0 })));
+}
+$("#bass-go").addEventListener("click", () => runBass());
+$("#bass-mode").addEventListener("change", () => runBass());
+$("#bass-min").addEventListener("change", () => runBass());
+$("#bass-max").addEventListener("change", () => runBass());
+$("#bass-clear").addEventListener("click", () => { bassSel.clear(); document.querySelectorAll("#bass-grid button").forEach(b => b.setAttribute("aria-pressed", "false")); runBass(); });
+function mini(grid) {
+  const span = el("span", { class: "mini16" });
+  [...grid].forEach((c, i) => { span.append(c === "x" ? el("i", { text: "●" }) : "·"); if (i % 4 === 3 && i < grid.length - 1) span.append(" "); });
+  return span;
+}
+function runBass() {
+  if (!IDX) return;
+  const mode = $("#bass-mode").value, lo = +$("#bass-min").value || 0, hi = +$("#bass-max").value || 99;
+  const sel = [...bassSel];
+  const out = [];
+  for (const s of scoped()) {
+    let run = null;
+    const flush = () => { if (run) { out.push(run.item); run = null; } };
+    for (const b of s.bars) {
+      const f = b.bs; let ok = f.onsets > 0 && f.onsets >= lo && f.onsets <= hi;
+      if (ok && sel.length) {
+        if (f.grid.length !== 16) ok = false;
+        else {
+          const on = new Set([...f.grid].map((c, i) => c === "x" ? i : -1).filter(i => i >= 0));
+          if (mode === "exact") ok = on.size === sel.length && sel.every(i => on.has(i));
+          else if (mode === "contains") ok = sel.every(i => on.has(i));
+          else { const inter = sel.filter(i => on.has(i)).length; ok = inter / new Set([...sel, ...on]).size >= 0.75; }
+        }
+      }
+      if (ok && bassTagSel.size) ok = [...bassTagSel].every(t => (f.tags || []).includes(t));
+      if (!ok) { flush(); continue; }
+      if (run && run.grid === f.grid && run.last === b.b - 1) { run.last = b.b; run.item.b = b.b; run.n++; run.item.body.lastChild.textContent = `连续 ${run.n} 小节相同`; continue; }
+      flush();
+      const chords = b.ch.map(c => `${c.c}（${c.r}）`).join("  ");
+      const body = el("div", { class: "chords" }, mini(f.grid), "   ", chords, el("div", { class: "where", text: "" }));
+      run = { grid: f.grid, last: b.b, n: 1, item: { song: s.id, a: b.b, b: b.b, body, ctx: 1 } };
+      body.lastChild.textContent = (f.tags || []).join(" · ");
+    }
+    flush();
+  }
+  const aud = scope !== "midi" ? "原曲转写的贝斯按八分音符取位" : "";
+  showResults(out, [sel.length ? `${["包含","完全一致","相似"][["contains","exact","similar"].indexOf(mode)]} · 只匹配 4/4 小节` : "", aud].filter(Boolean).join(" · "));
+}
+
+// ---------- 4. melody ----------
+const MEL_TAGS = ["级进为主","大跳（五度以上）","同音反复","弱起 / 后半拍进入","切分节奏","张力音","强拍不落和弦音"];
+const melTagSel = new Set();
+function buildMelTags() {
+  $("#mel-tags").innerHTML = "";
+  const cnt = new Map();
+  for (const s of IDX.songs) for (const b of s.bars) for (const t of (b.ml.tags || [])) { const k = t.startsWith("张力音") ? "张力音" : t; cnt.set(k, (cnt.get(k) || 0) + 1); }
+  const box = $("#mel-tags");
+  for (const t of MEL_TAGS) box.append(el("button", { class: "chip", "aria-pressed": "false", onclick: e => {
+    if (melTagSel.has(t)) melTagSel.delete(t); else melTagSel.add(t);
+    e.currentTarget.setAttribute("aria-pressed", String(melTagSel.has(t)));
+    runMel(true);
+  } }, t, el("span", { class: "n", text: cnt.get(t) || 0 })));
+  for (const s of IDX.songs) {   // degrees per melody note, relative to the bar's local key
+    s.melDeg = s.mel.map(([bar, pos, p]) => { const k = parseKey(s.barMap.get(bar)?.k); return k ? DEG[(p - k.tonic + 120) % 12] : "?"; });
+  }
+}
+$("#mel-go").addEventListener("click", () => runMel());
+$("#mel-input").addEventListener("keydown", e => { if (e.key === "Enter") runMel(); });
+$("#mel-mode").addEventListener("change", () => {
+  const ex = { deg: "3 2 1", int: "+2 +2 -4", con: "↗↗↘" }[$("#mel-mode").value];
+  $("#mel-input").value = ex; runMel();
+});
+function runMel(fromTags) {
+  if (!IDX) return;
+  if (fromTags && melTagSel.size) {
+    const out = [];
+    for (const s of scoped()) for (const b of s.bars) {
+      const tags = (b.ml.tags || []).map(t => t.startsWith("张力音") ? "张力音" : t);
+      if ([...melTagSel].every(t => tags.includes(t))) {
+        const body = el("div", { class: "chords" }, el("span", { text: b.ml.degrees }), "   ", el("span", { class: "rn", text: b.ch.map(c => c.r).join(" ") }), el("div", { class: "where", text: (b.ml.tags || []).join(" · ") }));
+        out.push({ song: s.id, a: b.b, b: b.b, body, ctx: 1 });
+      }
+    }
+    showResults(out, [...melTagSel].join(" + ")); return;
+  }
+  const mode = $("#mel-mode").value, raw = $("#mel-input").value.trim();
+  let pat;
+  if (mode === "deg") pat = raw.split(/\s+/).filter(Boolean).map(x => x.replace("♭", "b").replace("♯", "#"));
+  else if (mode === "int") pat = raw.split(/\s+/).filter(Boolean).map(x => parseInt(x, 10));
+  else pat = [...raw.toUpperCase()].map(c => ({ "↗": 1, U: 1, "↘": -1, D: -1, "→": 0, R: 0, "=": 0 })[c]).filter(v => v !== undefined);
+  if (!pat.length || pat.some(v => v === undefined || Number.isNaN(v))) { showResults([], "有看不懂的写法"); return; }
+  const out = [];
+  for (const s of scoped()) {
+    const m = s.mel; if (!m.length) continue;
+    const n = mode === "deg" ? pat.length : pat.length + 1;
+    for (let i = 0; i + n <= m.length; i++) {
+      let ok = true;
+      for (let j = 0; j < pat.length && ok; j++) {
+        if (mode === "deg") ok = s.melDeg[i + j] === pat[j];
+        else { const d = m[i + j + 1][2] - m[i + j][2]; ok = mode === "int" ? d === pat[j] : Math.sign(d) === pat[j]; }
+      }
+      if (!ok) continue;
+      // keep phrases inside 2 bars and without long gaps
+      if (m[i + n - 1][0] - m[i][0] > 2) continue;
+      const seg = m.slice(i, i + n);
+      const body = el("div", { class: "chords" }, el("span", { class: "hit", text: s.melDeg.slice(i, i + n).join(" ") }), "   ",
+        el("span", { class: "rn", text: (s.barMap.get(seg[0][0])?.ch || []).map(c => c.r).join(" ") }),
+        el("div", { class: "where", text: s.barMap.get(seg[0][0])?.k || "" }));
+      out.push({ song: s.id, a: seg[0][0], b: seg[n - 1][0], body, ctx: 1 });
+      i += n - 1;
+    }
+  }
+  showResults(out, { deg: "按当前小节的调计算音级", int: "", con: "" }[mode]);
+}
+
+// ---------- 5. keys ----------
+let keyKind = "转调";
+function buildKeyKinds() {
+  const box = $("#key-kinds"); box.innerHTML = "";
+  const cnt = { "转调": 0, "关系大小调切换": 0, "同主音大小调切换": 0, "短暂离调": 0 };
+  for (const s of IDX.songs) { for (const m of s.modulations) cnt[m.kind]++; cnt["短暂离调"] += excursions(s).length; }
+  if (IDX.source === "audio") keyKind = "全部歌曲";
+  const kinds = IDX.source === "audio" ? ["全部歌曲"] : ["转调", "短暂离调", "关系大小调切换", "同主音大小调切换", "全部歌曲"];
+  for (const k of kinds) box.append(el("button", { class: "chip", "aria-pressed": String(k === keyKind), onclick: e => {
+    box.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", "false")); e.currentTarget.setAttribute("aria-pressed", "true"); keyKind = k; runKey();
+  } }, k, k in cnt ? el("span", { class: "n", text: cnt[k] }) : null));
+}
+function excursions(s) {
+  const out = []; let cur = null;
+  for (const b of s.bars) {
+    if (b.kx) { if (cur && cur.key === b.kx && cur.b === b.b - 1) cur.b = b.b; else { cur = { key: b.kx, a: b.b, b: b.b, home: b.k }; out.push(cur); } }
+    else cur = null;
+  }
+  return out;
+}
+const IV_NAME = ["同度", "上行小二度（半音）", "上行大二度（全音）", "上行小三度", "上行大三度", "上行纯四度", "三全音", "上行纯五度", "下行大三度", "下行小三度", "下行大二度（全音）", "下行小二度（半音）"];
+function runKey() {
+  if (!IDX) return;
+  const out = [];
+  for (const s of scoped()) {
+    if (keyKind === "全部歌曲") {
+      const mods = s.modulations.filter(m => m.kind === "转调");
+      const body = el("div", { class: "chords" }, el("span", { class: "rn", text: s.globalKey }), isAudio(s) ? `   估计值（${s.keySource}）；录音转写不检测转调` : mods.length ? "   " + mods.map(m => `第 ${m.bar} 小节 → ${m.toKey}`).join("；") : "   全曲未检测到转调");
+      out.push({ song: s.id, a: 1, b: Math.min(4, s.nbars), body, ctx: 0 });
+    } else if (keyKind === "短暂离调") {
+      for (const x of excursions(s)) out.push({ song: s.id, a: x.a, b: x.b, ctx: 1, body: el("div", { class: "chords" }, el("span", { text: `${x.home} 中短暂离调到 ` }), el("span", { class: "hit", text: x.key })) });
+    } else {
+      for (const m of s.modulations) if (m.kind === keyKind) {
+        const body = el("div", { class: "chords" }, `${m.fromKey} → `, el("span", { class: "hit", text: m.toKey }), m.kind === "转调" ? `   主音${IV_NAME[m.interval]}` : "");
+        out.push({ song: s.id, a: Math.max(1, m.bar - 1), b: m.bar, body, ctx: 1 });
+      }
+    }
+  }
+  showResults(out, keyKind === "转调" ? "最后一遍副歌的升调常在这里" : "");
+}
+
+// ---------- detail ----------
+async function getNotes(id) {
+  if (!noteCache[id]) noteCache[id] = fetch(`notes/${id}.json`).then(r => r.json());
+  return noteCache[id];
+}
+$("#ctx-less").addEventListener("click", () => { ctx = Math.max(0, ctx - 1); if (current) openDetail(current.song, current.a, current.b); });
+$("#ctx-more").addEventListener("click", () => { ctx = Math.min(8, ctx + 1); if (current) openDetail(current.song, current.a, current.b); });
+const show = { melody: true, bass: true, other: true, drums: false };
+async function openDetail(id, a, b) {
+  stopAudio();
+  const s = SONGS[id]; current = { song: id, a, b };
+  const A = Math.max(1, a - ctx), B = Math.min(s.nbars, b + ctx);
+  current.A = A; current.B = B;
+  $("#d-title").textContent = s.title;
+  const meta = $("#d-meta"); meta.innerHTML = "";
+  const art = s.artist && !s.artist.startsWith("(") ? s.artist : "歌手未标注";
+  if (isAudio(s)) {
+    meta.append(el("span", { text: art }), el("span", {}, "来源 ", el("span", { class: "mono", text: "原曲录音的机器转写（Workbench）" })),
+      el("span", {}, "全曲调（估计）", el("span", { class: "mono", text: s.globalKey })),
+      el("span", {}, "速度约 ", el("span", { class: "mono", text: s.bpm + " BPM" })),
+      el("span", {}, "显示 ", el("span", { class: "mono", text: `第 ${A}–${B} 小节` })),
+      el("span", {}, "和弦 ", el("span", { class: "mono", text: !s.hasHarmony ? "无和弦图（上游未产出）" : s.tierBasis === "调覆盖"
+        ? `调覆盖 ${s.keyCoverage == null ? "—" : Math.round(s.keyCoverage * 100) + "%"}（规范 v0；${s.tier ? "参与和弦检索" : "低于 60%，不标级数、不参与和弦检索"}）· 根音与贝斯一致 ${(s.rootAgree * 100).toFixed(1)}%（贝斯常不弹根音，仅供参考）`
+        : `根音与贝斯一致 ${(s.rootAgree * 100).toFixed(1)}%（${s.rootAgreeN[1]} 个起音中 ${s.rootAgreeN[0]} 个）· 可信度${s.tier}${s.tier === "低" ? "，不参与和弦检索" : ""}` })),
+      el("span", {}, "贝斯起音贴拍 ", el("span", { class: "mono", text: `${Math.round(s.bassGridFit * 100)}%（打乱后 ${Math.round((s.bassGridChance ?? 0.25) * 100)}%，${s.bassGrid === "摇摆" ? "摇摆格" : "直拍格"} ±25 ms）` + (s.bassSearchable ? "" : "，不参与律动检索") })),
+      ...(s.chartRetimed ? [el("span", {}, el("span", { class: "badge", text: "和弦图已按鼓点小节重新对位" }))] : []),
+      el("span", {}, "旋律 ", el("span", { class: "mono", text: "无（录音里没有人声音高）" })),
+      ...(s.meterSuspect ? [el("span", {}, el("span", { class: "badge warn", text: "拍号存疑，不做小节级" }))] : []));
+    $("#d-path").textContent = `${s.id} · 原曲 ${s.src || (s.srcRel ? decodeURIComponent(s.srcRel).replace(/^(\.\.\/)+/, "") : "（这一版没带音频路径）")}`;
+  } else {
+  meta.append(el("span", { text: art }), el("span", {}, "全曲主调 ", el("span", { class: "mono", text: s.globalKey })),
+    el("span", {}, "速度 ", el("span", { class: "mono", text: s.bpm + " BPM" })),
+    el("span", {}, "显示 ", el("span", { class: "mono", text: `第 ${A}–${B} 小节` })),
+    el("span", {}, "旋律声部 ", el("span", { class: "mono", text: s.melodyPart ? `${s.melodyPart.name}（把握${s.melodyPart.confidence}）` : "未找到" })),
+    el("span", {}, "贝斯声部 ", el("span", { class: "mono", text: s.bassParts.join("、") || "未找到" })));
+  $("#d-path").textContent = `${s.id} · 原文件 ${s.src}`;
+  }
+  renderOrig(s, A, B);
+  // chord chart
+  const chart = $("#d-chart"); chart.innerHTML = "";
+  for (let n = A; n <= B; n++) {
+    const bar = s.barMap.get(n); if (!bar) continue;
+    const cs = el("div", { class: "cs" });
+    for (const c of bar.ch) {
+      const tags = c.tags.filter(t => /^(功能|低音|调性|进行|候选)/.test(t)).map(t => t.split(":")[1]);
+      const sc = s.seq[c.i];
+      cs.append(el("div", {}, el("div", { class: "cn", text: c.c }), el("div", { class: "rn" + (sc && sc.rk === "root" ? " soft" : ""), text: sc ? numeral(sc) : c.r }), tags.length ? el("div", { class: "tg", text: tags.join(" · ") }) : null));
+    }
+    if (!bar.ch.length) cs.append(el("div", { class: "tg", text: "（无和弦）" }));
+    const kp = parseKey(bar.k);
+    const keyLabel = relView() && kp && kp.mode === "minor" ? `${bar.k}（按关系大调读）` : bar.k;
+    chart.append(el("div", { class: "bar" + (n >= a && n <= b ? " hit" : "") }, el("div", { class: "bn" }, el("span", { text: `${n}` }), el("span", { text: bar.caution ? "坐标存疑" : bar.kx ? `离调 ${bar.kx}` : keyLabel })), cs));
+  }
+  // features of the hit bars
+  const feat = $("#d-feat"); feat.innerHTML = "";
+  const hb = s.barMap.get(a);
+  if (hb) {
+    feat.append(el("div", {}, el("h3", { text: `第 ${a} 小节 · 贝斯` + (isAudio(s) ? "（八分音符取位）" : "") }), el("div", { class: "mono" }, mini(hb.bs.grid || "")),
+      el("div", { text: hb.bs.note ? hb.bs.note : hb.bs.onsets ? `每小节 ${hb.bs.onsets} 个音` + (hb.bs.rootRatio != null ? `，根音占 ${Math.round(hb.bs.rootRatio * 100)}%` : "") : "这一小节没有贝斯" }),
+      el("div", { class: "tg", text: (hb.bs.tags || []).join(" · ") })));
+    feat.append(el("div", {}, el("h3", { text: `第 ${a} 小节 · 旋律` }),
+      el("div", { class: "mono", text: hb.ml.degrees ? `音级 ${hb.ml.degrees}` : isAudio(s) ? "录音转写没有旋律" : "这一小节没有旋律" }),
+      hb.ml.intervals ? el("div", { class: "mono", text: `音程 ${hb.ml.intervals}` }) : null,
+      el("div", { class: "tg", text: (hb.ml.tags || []).join(" · ") })));
+  }
+  const audio = isAudio(s);
+  for (const q of [".roll-wrap", "#d-legend", "#export"]) $(q).hidden = audio;
+  if (audio) {
+    current.nd = null;
+    $("#play").textContent = "播放原曲片段";
+    $("#status").textContent = ORIG[id] ? `第 ${A}–${B} 小节 · 原曲 ${fmt(sliceRange(s, A, B)[0])}–${fmt(sliceRange(s, A, B)[1])}` : "先载入原曲文件夹，才能播放片段";
+    return;
+  }
+  $("#play").textContent = "播放";
+  $("#status").textContent = "载入音符…";
+  const nd = await getNotes(id);
+  if (!current || current.song !== id || current.A !== A || current.B !== B) return;
+  current.nd = nd;
+  $("#status").textContent = "";
+  buildLegend(nd); drawRoll();
+}
+function roleColor(role) {
+  const cs = getComputedStyle(document.documentElement);
+  return cs.getPropertyValue({ melody: "--melody", bass: "--accent", other: "--other", drums: "--drum" }[role]).trim();
+}
+function buildLegend(nd) {
+  const lg = $("#d-legend"); lg.innerHTML = "";
+  const names = { melody: "旋律", bass: "贝斯", other: "其他声部", drums: "鼓" };
+  for (const r of ["melody", "bass", "other", "drums"]) {
+    const id = "show-" + r;
+    const cb = el("input", { type: "checkbox", id });
+    cb.checked = show[r];
+    cb.addEventListener("change", () => { show[r] = cb.checked; drawRoll(); });
+    lg.append(el("label", { class: "chk", for: id }, cb, el("span", { class: "sw", style: `background:${roleColor(r)}` }), names[r]));
+  }
+}
+function rangeTicks() {
+  const nd = current.nd, bars = nd.bars;
+  const ba = bars.find(x => x[0] === current.A), bb = bars.find(x => x[0] === current.B);
+  return { t0: ba[1], t1: bb[1] + bb[3], s0: ba[2] };
+}
+function notesInRange() {
+  const nd = current.nd, { t0, t1 } = rangeTicks();
+  return nd.notes.filter(n => n[0] < t1 && n[0] + n[1] > t0);
+}
+function drawRoll() {
+  if (!current || !current.nd) return;
+  const cv = $("#roll"), dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+  const nd = current.nd, { t0, t1 } = rangeTicks();
+  const notes = notesInRange().filter(n => show[nd.parts[n[4]].role]);
+  const pitched = notes.filter(n => nd.parts[n[4]].role !== "drums");
+  let lo = 36, hi = 84;
+  if (pitched.length) { lo = Math.min(...pitched.map(n => n[2])) - 2; hi = Math.max(...pitched.map(n => n[2])) + 2; }
+  if (hi - lo < 24) { const m = (hi + lo) / 2; lo = Math.floor(m - 12); hi = Math.ceil(m + 12); }
+  const X = t => (t - t0) / (t1 - t0) * W, Y = p => H - 14 - (p - lo + 1) / (hi - lo + 1) * (H - 22);
+  const cs = getComputedStyle(document.documentElement);
+  const line = cs.getPropertyValue("--line").trim(), muted = cs.getPropertyValue("--muted").trim();
+  // C lines
+  g.font = "10px " + cs.getPropertyValue("--font-data");
+  for (let p = Math.ceil(lo / 12) * 12; p <= hi; p += 12) { g.fillStyle = line; g.fillRect(0, Y(p) + 0.5, W, 1); g.fillStyle = muted; g.fillText("C" + (p / 12 - 1), 4, Y(p) - 2); }
+  // bar lines
+  for (const b of nd.bars) if (b[0] >= current.A && b[0] <= current.B + 1) {
+    const x = X(b[1]); g.fillStyle = muted; g.globalAlpha = 0.45; g.fillRect(Math.round(x), 0, 1, H); g.globalAlpha = 1;
+    if (b[0] <= current.B) g.fillText(String(b[0]), x + 4, H - 3);
+  }
+  const order = { drums: 0, other: 1, bass: 2, melody: 3 };
+  notes.sort((a, b) => order[nd.parts[a[4]].role] - order[nd.parts[b[4]].role]);
+  for (const n of notes) {
+    const role = nd.parts[n[4]].role;
+    g.fillStyle = roleColor(role);
+    g.globalAlpha = role === "other" ? 0.55 : 1;
+    const x = X(Math.max(n[0], t0)), w = Math.max(2, X(Math.min(n[0] + n[1], t1)) - x - 1);
+    const y = role === "drums" ? H - 12 - (n[2] % 24) / 24 * (H - 30) : Y(n[2]);
+    g.fillRect(x, y - 3, w, role === "drums" ? 3 : 5);
+  }
+  g.globalAlpha = 1;
+}
+window.addEventListener("resize", () => drawRoll());
+
+// ---------- original recording ----------
+const AUTO_FAILED = new Set();   // songs whose served recording could not be loaded
+const ORIG = {};   // songId -> {url, name} for files loaded in this session
+function anchorsOf(id) { try { return JSON.parse(localStorage.getItem("orig-anchors-" + id) || "[]"); } catch (e) { return ORIG[id]?.anchors || []; } }
+function saveAnchors(id, arr) { if (ORIG[id]) ORIG[id].anchors = arr; try { localStorage.setItem("orig-anchors-" + id, JSON.stringify(arr)); } catch (e) {} }
+function midiSecOfBar(s, bar) { const b = s.barMap.get(bar); return b ? b.t : 0; }
+function mapLinear(an, x, from, to) {      // piecewise-linear map using anchor pairs
+  if (!an.length) return x;
+  if (an.length === 1) return x + (an[0][to] - an[0][from]);
+  let i = 0; while (i < an.length - 2 && x > an[i + 1][from]) i++;
+  const p = an[i], q = an[i + 1], d = (q[from] - p[from]) || 1;
+  return p[to] + (x - p[from]) * (q[to] - p[to]) / d;
+}
+const sortedAnchors = id => anchorsOf(id).slice().sort((x, y) => x.m - y.m);
+const toAudioSec = (s, m) => mapLinear(sortedAnchors(s.id), m, "m", "a");
+const toMidiSec = (s, a) => mapLinear(sortedAnchors(s.id), a, "a", "m");
+function barAtMidiSec(s, sec) { let bar = 1; for (const b of s.bars) { if (b.t <= sec + 1e-6) bar = b.b; else break; } return bar; }
+const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), x = Math.floor(t % 60); return `${m}:${String(x).padStart(2, "0")}`; };
+function renderOrig(s, A, B) {
+  const q = encodeURIComponent([s.title, s.artist && !s.artist.startsWith("(") ? s.artist : ""].join(" ").trim());
+  const links = $("#orig-links"); links.innerHTML = "";
+  const est = toAudioSec(s, midiSecOfBar(s, A));
+  links.append(el("a", { href: `https://search.bilibili.com/all?keyword=${q}`, target: "_blank", rel: "noopener" , text: "在哔哩哔哩搜索原曲" }),
+    el("a", { href: `https://www.youtube.com/results?search_query=${q}`, target: "_blank", rel: "noopener", text: "在 YouTube 搜索原曲" }),
+    el("span", { class: "hint", text: isAudio(s) ? `这首的时间轴就是原曲音频本身：第 ${A} 小节在原曲 ${fmt(est)}。${ORIG[s.id] && ORIG[s.id].auto ? '原曲已直接接上 Workbench 导出，点结果就播放对应小节。' : '载入 workbench_data_baseline 文件夹一次，所有歌都能直接播放对应小节，不用对齐。'}` : anchorsOf(s.id).length ? `按你的对齐点，第 ${A} 小节在原曲 ${fmt(est)}` : `按 MIDI 速度估算，第 ${A} 小节大约在原曲 ${fmt(est)}（MIDI 版本的前奏和速度可能与原曲不同，仅供参考）` }));
+  for (const id of ["#orig-set", "#orig-reset"]) $(id).hidden = isAudio(s);
+  $("#orig-dir-btn").hidden = !isAudio(s);
+  $("#orig-bar").closest("label").hidden = isAudio(s);
+  $("#orig-help").hidden = isAudio(s);
+  const au = $("#orig-audio"), o = ORIG[s.id];
+  $("#orig-bar").value = A;
+  $("#orig-jump").textContent = `从第 ${A} 小节播放原曲`;
+  if (o) {
+    if (au.dataset.song !== s.id) { au.src = o.url; au.dataset.song = s.id; }
+    au.hidden = false; $("#orig-ctrl").hidden = false; $("#orig-pos").hidden = false;
+    $("#orig-name").textContent = `已载入：${o.name}`;
+  } else {
+    au.pause(); au.removeAttribute("src"); au.dataset.song = ""; au.load();
+    au.hidden = true; $("#orig-ctrl").hidden = true; $("#orig-pos").hidden = true;
+    $("#orig-name").textContent = AUTO_FAILED.has(s.id) ? "没能直接读到 Workbench 导出里的这首原曲，请手动载入 workbench_data_baseline 文件夹。" : "用你电脑上的原曲文件，只在这个页面里播放，不会上传。";
+  }
+  showAnchors(s);
+}
+function showAnchors(s) {
+  const an = sortedAnchors(s.id);
+  $("#orig-anchors").textContent = an.length ? "对齐点：" + an.map(x => `第 ${x.bar} 小节 = 原曲 ${fmt(x.a)}`).join("；") : "";
+}
+$("#orig-dir").addEventListener("change", e => {
+  let n = 0;
+  for (const f of e.target.files || []) {
+    const parts = (f.webkitRelativePath || "").split("/");
+    if (!/^master\.(ogg|flac|wav|mp3|m4a)$/i.test(f.name) || parts.length < 4) continue;
+    const id = "wb_" + parts[parts.length - 4];
+    if (!SONGS[id]) continue;
+    if (ORIG[id]) URL.revokeObjectURL(ORIG[id].url);
+    ORIG[id] = { url: URL.createObjectURL(f), name: parts.slice(-4).join("/"), anchors: [] };
+    n++;
+  }
+  e.target.value = "";
+  if (current) openDetail(current.song, current.a, current.b);
+  $("#orig-name").textContent = n ? `已载入 ${n} 首原曲（只在这个页面里播放，不会上传）。点结果就会播放对应小节。` : "这个文件夹里没找到 <歌名>/sources/audio/master.ogg，请选 workbench_data_baseline 文件夹。";
+});
+$("#orig-file").addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0]; if (!f || !current) return;
+  const id = current.song;
+  if (ORIG[id]) URL.revokeObjectURL(ORIG[id].url);
+  ORIG[id] = { url: URL.createObjectURL(f), name: f.name, anchors: anchorsOf(id) };
+  e.target.value = "";
+  renderOrig(SONGS[id], current.A, current.B);
+});
+$("#orig-jump").addEventListener("click", () => {
+  if (!current) return; const s = SONGS[current.song], au = $("#orig-audio");
+  stopAudio();
+  au.currentTime = Math.max(0, toAudioSec(s, midiSecOfBar(s, current.A)));
+  au.play().catch(() => { $("#orig-name").textContent = "这个文件无法播放，换成 mp3、m4a 或 wav 再试。"; });
+});
+$("#orig-set").addEventListener("click", () => {
+  if (!current) return; const s = SONGS[current.song], au = $("#orig-audio");
+  const bar = Math.max(1, Math.min(s.nbars, parseInt($("#orig-bar").value, 10) || 1));
+  const an = anchorsOf(s.id).filter(x => x.bar !== bar);
+  an.push({ bar, m: midiSecOfBar(s, bar), a: au.currentTime });
+  saveAnchors(s.id, an); renderOrig(s, current.A, current.B);
+});
+$("#orig-reset").addEventListener("click", () => { if (!current) return; saveAnchors(current.song, []); renderOrig(SONGS[current.song], current.A, current.B); });
+$("#orig-audio").addEventListener("timeupdate", () => {
+  if (!current) return; const s = SONGS[current.song], au = $("#orig-audio");
+  const bar = barAtMidiSec(s, toMidiSec(s, au.currentTime));
+  const b = s.barMap.get(bar);
+  $("#orig-pos").textContent = `原曲 ${fmt(au.currentTime)} · 大约第 ${bar} 小节` + (b && b.ch.length ? ` · ${b.ch.map(c => c.c).join(" ")}` : "");
+});
+$("#orig-audio").addEventListener("play", () => stopAudio());
+$("#orig-audio").addEventListener("error", () => {     // auto URL not reachable: fall back to picking the folder
+  const id = $("#orig-audio").dataset.song;
+  if (!id || !ORIG[id] || !ORIG[id].auto) return;
+  delete ORIG[id]; AUTO_FAILED.add(id);
+  stopSlice();
+  if (current) openDetail(current.song, current.a, current.b);
+});
+
+// ---------- audio ----------
+let AC = null;
+function stopAudio() {
+  if (AC) { try { AC.close(); } catch (e) {} AC = null; }
+  if (sliceEnd === null) $("#play").textContent = current && isAudio(SONGS[current.song]) ? "播放原曲片段" : "播放";
+}
+// ---------- original-recording slices (audio songs: the bar view is in audio seconds already) ----------
+let sliceEnd = null, sliceRAF = 0;
+function sliceRange(s, A, B) {
+  const a = s.barMap.get(A), nb = s.barMap.get(B + 1), lb = s.barMap.get(B);
+  // every bar carries its real end second (e); older indexes fall back to the next bar line or the bar length
+  return [a ? (a.pre != null ? a.pre : a.t) : 0, lb && lb.e != null ? lb.e : nb ? nb.t : (lb ? lb.t + lb.len * 60 / s.bpm : 0)];
+}
+function stopSlice() {
+  sliceEnd = null; cancelAnimationFrame(sliceRAF);
+  if (current && isAudio(SONGS[current.song])) $("#play").textContent = "播放原曲片段";
+}
+function playSlice() {
+  if (!current) return;
+  const s = SONGS[current.song], o = ORIG[s.id], au = $("#orig-audio");
+  if (!o) { $("#status").textContent = "先载入原曲文件夹，才能播放片段"; return; }
+  stopAudio();
+  if (au.dataset.song !== s.id) { au.src = o.url; au.dataset.song = s.id; }
+  const [a, e] = sliceRange(s, current.A, current.B);
+  sliceEnd = e; au.currentTime = a;
+  au.play().then(() => {
+    $("#play").textContent = "停止";
+    const tick = () => { if (sliceEnd === null) return; if (au.currentTime >= sliceEnd || au.ended) { au.pause(); stopSlice(); return; } sliceRAF = requestAnimationFrame(tick); };
+    sliceRAF = requestAnimationFrame(tick);
+  }).catch(() => { stopSlice(); $("#status").textContent = "这个文件无法播放。"; });
+}
+$("#orig-audio").addEventListener("pause", () => { if (sliceEnd !== null) stopSlice(); });
+$("#play").addEventListener("click", () => {
+  if (current && isAudio(SONGS[current.song])) {
+    if (sliceEnd !== null) { $("#orig-audio").pause(); stopSlice(); } else playSlice();
+    return;
+  }
+  if (AC) { stopAudio(); return; }
+  if (!current || !current.nd) return;
+  const nd = current.nd, { t0, t1, s0 } = rangeTicks();
+  $("#orig-audio").pause();
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  const ac = AC, now = ac.currentTime + 0.08;
+  const master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+  const noise = ac.createBuffer(1, ac.sampleRate * 0.3, ac.sampleRate); const nd0 = noise.getChannelData(0); for (let i = 0; i < nd0.length; i++) nd0[i] = Math.random() * 2 - 1;
+  let end = 0;
+  for (const n of notesInRange()) {
+    const role = nd.parts[n[4]].role; if (!show[role]) continue;
+    if (n[0] < t0) continue;
+    const st = now + (n[5] - s0), du = Math.min(n[6], 3);
+    end = Math.max(end, st + du);
+    const vel = n[3] / 127;
+    if (role === "drums") {
+      if (n[2] === 35 || n[2] === 36) {
+        const o = ac.createOscillator(), gn = ac.createGain(); o.frequency.setValueAtTime(140, st); o.frequency.exponentialRampToValueAtTime(45, st + 0.12);
+        gn.gain.setValueAtTime(0.9 * vel, st); gn.gain.exponentialRampToValueAtTime(0.001, st + 0.18); o.connect(gn).connect(master); o.start(st); o.stop(st + 0.2);
+      } else {
+        const src = ac.createBufferSource(); src.buffer = noise; const f = ac.createBiquadFilter(); f.type = "highpass";
+        f.frequency.value = (n[2] === 38 || n[2] === 40) ? 1200 : 6000; const gn = ac.createGain();
+        const len = (n[2] === 38 || n[2] === 40) ? 0.14 : 0.05; gn.gain.setValueAtTime(0.35 * vel, st); gn.gain.exponentialRampToValueAtTime(0.001, st + len);
+        src.connect(f).connect(gn).connect(master); src.start(st); src.stop(st + len + 0.02);
+      }
+      continue;
+    }
+    const o = ac.createOscillator(), gn = ac.createGain(), f = ac.createBiquadFilter();
+    o.type = role === "bass" ? "triangle" : role === "melody" ? "square" : "sine";
+    o.frequency.value = 440 * Math.pow(2, (n[2] - 69) / 12);
+    f.type = "lowpass"; f.frequency.value = role === "melody" ? 2200 : 1600;
+    const peak = (role === "melody" ? 0.12 : role === "bass" ? 0.32 : 0.07) * (0.4 + vel);
+    gn.gain.setValueAtTime(0.0001, st); gn.gain.exponentialRampToValueAtTime(peak, st + 0.012);
+    gn.gain.setValueAtTime(peak, st + Math.max(0.02, du - 0.04)); gn.gain.exponentialRampToValueAtTime(0.0001, st + du + 0.04);
+    o.connect(f).connect(gn).connect(master); o.start(st); o.stop(st + du + 0.06);
+  }
+  $("#play").textContent = "停止";
+  const myAC = ac; setTimeout(() => { if (AC === myAC) stopAudio(); }, (end - now + 0.4) * 1000);
+});
+
+// ---------- MIDI export (zip) ----------
+function vlq(n) { const b = [n & 0x7f]; while ((n >>= 7)) b.unshift((n & 0x7f) | 0x80); return b; }
+function trackChunk(events) {   // events: [tick, bytes[]] sorted
+  const out = []; let last = 0;
+  for (const [t, bytes] of events) { out.push(...vlq(t - last), ...bytes); last = t; }
+  out.push(0, 0xff, 0x2f, 0);
+  return [0x4d, 0x54, 0x72, 0x6b, (out.length >>> 24) & 255, (out.length >>> 16) & 255, (out.length >>> 8) & 255, out.length & 255, ...out];
+}
+function textMeta(type, s) { const b = [...new TextEncoder().encode(s)]; return [0xff, type, ...vlq(b.length), ...b]; }
+function buildMidi() {
+  const nd = current.nd, { t0, t1 } = rangeTicks();
+  const tempoAt = t => { let us = 500000; for (const [tk, u] of nd.tempo) if (tk <= t) us = u; return us; };
+  const meterAt = t => { let m = [4, 4]; for (const [tk, a, b] of nd.meter) if (tk <= t) m = [a, b]; return m; };
+  const tempoEv = [[0, [0xff, 0x51, 3, (tempoAt(t0) >> 16) & 255, (tempoAt(t0) >> 8) & 255, tempoAt(t0) & 255]]];
+  for (const [tk, u] of nd.tempo) if (tk > t0 && tk < t1) tempoEv.push([tk - t0, [0xff, 0x51, 3, (u >> 16) & 255, (u >> 8) & 255, u & 255]]);
+  const [mn, md] = meterAt(t0);
+  tempoEv.push([0, [0xff, 0x58, 4, mn, Math.round(Math.log2(md)), 24, 8]]);
+  for (const [tk, a, b] of nd.meter) if (tk > t0 && tk < t1) tempoEv.push([tk - t0, [0xff, 0x58, 4, a, Math.round(Math.log2(b)), 24, 8]]);
+  tempoEv.sort((x, y) => x[0] - y[0]);
+  tempoEv.unshift([0, textMeta(3, `${SONGS[current.song].title} 第${current.A}-${current.B}小节`)]);
+  const tracks = [trackChunk(tempoEv)];
+  const byPart = new Map();
+  for (const n of notesInRange()) { const r = nd.parts[n[4]].role; if (!show[r] || n[0] < t0) continue; if (!byPart.has(n[4])) byPart.set(n[4], []); byPart.get(n[4]).push(n); }
+  for (const [pi, list] of byPart) {
+    const p = nd.parts[pi], ch = (p.ch - 1) & 15;
+    const ev = [[0, textMeta(3, p.name)]];
+    if (p.ch !== 10) ev.push([0, [0xc0 | ch, p.prog & 127]]);
+    for (const n of list) {
+      const s = n[0] - t0, e = Math.min(n[0] + n[1], t1) - t0;
+      ev.push([s, [0x90 | ch, n[2], Math.max(1, n[3])]], [Math.max(e, s + 1), [0x80 | ch, n[2], 0]]);
+    }
+    ev.sort((x, y) => x[0] - y[0] || (x[1][0] & 0xf0) - (y[1][0] & 0xf0));
+    tracks.push(trackChunk(ev));
+  }
+  const head = [0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, (tracks.length >> 8) & 255, tracks.length & 255, (nd.tpq >> 8) & 255, nd.tpq & 255];
+  return new Uint8Array([...head, ...tracks.flat()]);
+}
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xffffffff; for (const b of u8) c = CRC[(c ^ b) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+function zipOne(name, data) {
+  const nb = new TextEncoder().encode(name), crc = crc32(data), size = data.length;
+  const le = (v, n) => { const a = []; for (let i = 0; i < n; i++) a.push((v >>> (8 * i)) & 255); return a; };
+  const local = [0x50, 0x4b, 3, 4, ...le(20, 2), ...le(0x0800, 2), ...le(0, 2), ...le(0, 2), ...le(0x21, 2), ...le(crc, 4), ...le(size, 4), ...le(size, 4), ...le(nb.length, 2), ...le(0, 2), ...nb];
+  const central = [0x50, 0x4b, 1, 2, ...le(20, 2), ...le(20, 2), ...le(0x0800, 2), ...le(0, 2), ...le(0, 2), ...le(0x21, 2), ...le(crc, 4), ...le(size, 4), ...le(size, 4), ...le(nb.length, 2), ...le(0, 2), ...le(0, 2), ...le(0, 2), ...le(0, 2), ...le(0, 4), ...le(0, 4), ...nb];
+  const off = local.length + size;
+  const eocd = [0x50, 0x4b, 5, 6, ...le(0, 2), ...le(0, 2), ...le(1, 2), ...le(1, 2), ...le(central.length, 4), ...le(off, 4), ...le(0, 2)];
+  const out = new Uint8Array(off + central.length + eocd.length);
+  out.set(local, 0); out.set(data, local.length); out.set(central, off); out.set(eocd, off + central.length);
+  return out;
+}
+let DL = null;
+(async () => {
+  try { DL = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { DL = null; }
+  if (!DL) { $("#export").disabled = true; $("#export").title = "在 claude.ai 中打开这个页面才能导出"; }
+})();
+$("#export").addEventListener("click", async () => {
+  if (!current || !current.nd) return;
+  if (!DL) { $("#status").textContent = "这个视图不支持导出文件。"; return; }
+  const safe = SONGS[current.song].title.replace(/[\\/:*?"<>|]/g, "");
+  const base = `${current.song}_${safe}_第${current.A}-${current.B}小节`;
+  try {
+    const zip = zipOne(base + ".mid", buildMidi());
+    await DL.save({ filename: base + ".zip", data: new Blob([zip]) });
+    $("#status").textContent = "已保存。解压后把 .mid 拖进 FL Studio 或 REAPER 即可。";
+  } catch (e) {
+    $("#status").textContent = e && e.code === "declined" ? "已取消保存。" : "保存没有成功，请稍后再试。";
+  }
+});
+})();
+</script>

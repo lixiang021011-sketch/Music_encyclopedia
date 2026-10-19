@@ -1,0 +1,59 @@
+{
+ "_说明": "例句库只收 include 里的歌。导出里的其他歌只出现在 build_report.json 的 candidates 里，审核后把目录名加进 include 再重建。exclude 写明不收的原因；require 是每首发布歌都要过的门槛（缺了 allowMissing 以外的组件、没有原曲音频、契约版本不对，就跳过并写进报告）。",
+ "batch": "Workbench 第一批（2026-10-11 审定的 34 首）",
+ "include": [
+  "atom",
+  "chichunhua",
+  "dubai",
+  "eine",
+  "feishu",
+  "flyway",
+  "flywayleo",
+  "haiiro",
+  "happyend",
+  "henceforth",
+  "hitchcock",
+  "iloveyou",
+  "kaitou",
+  "kaluo",
+  "kiechau",
+  "knowme",
+  "landaohua",
+  "langzhizhu",
+  "light",
+  "lulu",
+  "natsuyuki",
+  "onewish",
+  "sacra",
+  "sakuranoko",
+  "seiza",
+  "soragoto",
+  "spica",
+  "taishou",
+  "tao",
+  "tengoku",
+  "velvet",
+  "yorukake",
+  "yue",
+  "yukiguni"
+ ],
+ "exclude": {
+  "kaishin2": "和 kaishin 标题、歌手相同（会心の一撃 / YOASOBI），待确认保留哪一份",
+  "new_55": "和 kaishin 标题、歌手相同（会心の一撃 / YOASOBI），待确认保留哪一份",
+  "yoru": "和 yorukake 标题、歌手相同（夜を駆ける / Spitz），已发布 yorukake"
+ },
+ "require": {
+  "schemaVersion": "workbench.music.v2",
+  "allowHealth": [
+   "usable_with_reservations",
+   "usable"
+  ],
+  "allowMissing": [
+   "harmony",
+   "sections",
+   "piano",
+   "guitar"
+  ],
+  "needAudio": true
+ }
+}

@@ -1,0 +1,14 @@
+# 生成物：每次构建都会重写
+site/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 构建中间文件
+*.tmp
+.build.lock
+.staging/
+
+# 本机配置
+tool/config.local.json

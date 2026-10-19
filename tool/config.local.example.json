@@ -1,0 +1,4 @@
+{
+ "baseline": "F:/path/to/workbench_data_baseline",
+ "_说明": "复制成 config.local.json，改成你电脑上 Workbench 导出文件夹的路径"
+}

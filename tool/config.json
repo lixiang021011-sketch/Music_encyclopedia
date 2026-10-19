@@ -1,0 +1,23 @@
+{
+ "baseline": "../../workbench_data_baseline",
+ "out": "../site",
+ "port": 8765,
+ "swing": [
+  "atom",
+  "chichunhua",
+  "eine",
+  "happyend",
+  "hitchcock",
+  "kiechau",
+  "natsuyuki"
+ ],
+ "suspectMeter": [
+  "flyway",
+  "flywayleo",
+  "haiiro",
+  "iloveyou",
+  "hitchcock",
+  "sacra"
+ ],
+ "_说明": "本机路径写在 config.local.json（不进仓库，照 config.local.example.json 建一份），它会覆盖这里的同名项。路径相对于 tool 文件夹，也可以写绝对路径。swing：鼓是摇摆律动的歌，贝斯按摇摆网格判贴拍；suspectMeter：速度读成 2:3 / 4:3 / 2:1 的歌，不做小节级检索。"
+}
